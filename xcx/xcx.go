@@ -19,6 +19,8 @@ type WechatXcx struct {
 	MchId       string // 微信支付分配的商户号
 	ApiKey      string // 微信支付商户密钥
 	accessToken string // 微信小程序唯一凭证
+	PemCertFile string
+	PemKeyFile  string
 }
 
 // 登录凭证校验
@@ -87,21 +89,15 @@ func (w *WechatXcx) SendTemplate(tp Template) (core.M, error) {
 	return h.PostData()
 }
 
-func (w *WechatXcx) execOrder(order interface{}, url, signType string) (core.M, error) {
+func (w *WechatXcx) execOrder(order interface{}, url, signType string, isCert bool) (core.M, error) {
 
 	// 补全签名
-	var req = make(map[string]string)
 	params, err := utils.StrcutToMap(order)
 	if err != nil {
 		return nil, err
 	}
-	for k, v := range params {
-		if v.(string) == "" {
-			delete(params, k)
-		}
-		req[k] = v.(string)
-	}
 	params["nonce_str"] = utils.RandomStr(32)
+	req := utils.MapToStringMap(params)
 
 	switch signType {
 	case core.SIGNTYPE_HMAC_SHA256:
@@ -116,7 +112,14 @@ func (w *WechatXcx) execOrder(order interface{}, url, signType string) (core.M, 
 		Url:    url,
 		Params: params,
 	}
-	mp, err := h.XmlData()
+	var mp map[string]string
+	if isCert == true {
+		h.CertFile = w.PemCertFile
+		h.KeyFile = w.PemKeyFile
+		mp, err = h.XmlDataWithCert()
+	} else {
+		mp, err = h.XmlData()
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -170,7 +173,7 @@ func (w *WechatXcx) OrderPay(o UnifiedOrder) (core.M, error) {
 		Receipt:        o.Receipt,
 	}
 
-	return w.execOrder(orderReq, core.WECHAT_XCX_UNIFIEDORDER, o.SignType)
+	return w.execOrder(orderReq, core.WECHAT_XCX_UNIFIEDORDER, o.SignType, false)
 }
 
 // 查询订单
@@ -182,7 +185,7 @@ func (w *WechatXcx) OrderQuery(o OrderQuery) (core.M, error) {
 		TransactionId: o.TransactionId,
 		OutTradeNo:    o.OutTradeNo,
 	}
-	return w.execOrder(orderReq, core.WECHAT_XCX_QUERYORDER, o.SignType)
+	return w.execOrder(orderReq, core.WECHAT_XCX_QUERYORDER, o.SignType, false)
 }
 
 // 关闭订单
@@ -193,7 +196,7 @@ func (w *WechatXcx) OrderClose(o OrderClose) (core.M, error) {
 		MchId:      w.MchId,
 		OutTradeNo: o.OutTradeNo,
 	}
-	return w.execOrder(orderReq, core.WECHAT_XCX_CLOSEORDER, o.SignType)
+	return w.execOrder(orderReq, core.WECHAT_XCX_CLOSEORDER, o.SignType, false)
 }
 
 // 订单退款
@@ -210,5 +213,5 @@ func (w *WechatXcx) OrderRefund(o OrderRefund) (core.M, error) {
 		RefundDesc:    o.RefundDesc,
 		NotifyUrl:     o.NotifyUrl,
 	}
-	return w.execOrder(orderReq, core.WECHAT_XCX_REFUNDORDER, o.SignType)
+	return w.execOrder(orderReq, core.WECHAT_XCX_REFUNDORDER, o.SignType, true)
 }
