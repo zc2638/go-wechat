@@ -17,16 +17,15 @@ type WechatXcx struct {
 	Appid       string // 微信分配的小程序ID
 	Appsecret   string // 微信分配的小程序密钥
 	MchId       string // 微信支付分配的商户号
-	ApiKey		string // 微信支付商户密钥
+	ApiKey      string // 微信支付商户密钥
 	accessToken string // 微信小程序唯一凭证
 }
 
 // 登录凭证校验
-func (w *WechatXcx) Code2session(code string) (res ResCode2Session, err error) {
+func (w *WechatXcx) Code2session(code string) (core.M, error) {
 
 	h := core.HttpReq{Url: core.WECHAT_XCX_CODE2SESSION + "?appid=" + w.Appid + "&secret=" + w.Appsecret + "&js_code=" + code + "&grant_type=authorization_code"}
-	err = h.Get(&res)
-	return
+	return h.GetData()
 }
 
 // 获取小程序全局唯一后台接口调用凭据（access_token）。
@@ -74,77 +73,27 @@ func (w *WechatXcx) DecryptData(encryptedData, sessionKey, iv string) (core.M, e
 }
 
 // 发送模板消息
-func (w *WechatXcx) SendTemplate(tp Template) (res ResCode, err error) {
+func (w *WechatXcx) SendTemplate(tp Template) (core.M, error) {
 
-	err = w.BuildAccessToken()
+	err := w.BuildAccessToken()
 	if err != nil {
-		return
+		return nil, err
 	}
 	params, _ := utils.StrcutToMap(tp)
 	h := core.HttpReq{
 		Url:    core.WECHAT_XCX_TEMPLATE_SEND + "?access_token=" + w.accessToken,
 		Params: params,
 	}
-	err = h.Post(&res)
-	return
+	return h.PostData()
 }
 
-// 统一下单
-func (w *WechatXcx) OrderPay(order UnifiedOrder) (res ResUnifiedOrder, err error) {
-
-	if order.NotifyUrl == "" {
-		err = errors.New("notify_url cannot be empty")
-		return
-	}
-	if order.Openid == "" {
-		err = errors.New("openid cannot be empty")
-		return
-	}
-	if order.TotalFee == 0 {
-		err = errors.New("total_fee must greater than 0")
-		return
-	}
-
-	switch order.SignType {
-	case core.SIGNTYPE_HMAC_SHA256:
-		order.SignType = core.SIGNTYPE_HMAC_SHA256
-		break
-	default:
-		order.SignType = core.SIGNTYPE_MD5
-		break
-	}
-	if order.SpbillCreateIp == "" {
-		order.SpbillCreateIp = "127.0.0.1"
-	}
-
-	var orderReq = UnifiedOrderReq{
-		Appid: w.Appid,
-		MchId: w.MchId,
-		Body: order.Body,
-		OutTradeNo: order.OutTradeNo,
-		SpbillCreateIp: order.SpbillCreateIp,
-		NotifyUrl: order.NotifyUrl,
-		TradeType: "JSAPI",
-		TotalFee: strconv.Itoa(order.TotalFee),
-		NonceStr: utils.RandomStr(32),
-		DeviceInfo: order.DeviceInfo,
-		SignType: order.SignType,
-		Detail: order.Detail,
-		Attach: order.Attach,
-		TimeStart: order.TimeStart,
-		TimeExpire: order.TimeExpire,
-		GoodsTag: order.GoodsTag,
-		ProductId: order.ProductId,
-		LimitPay: order.LimitPay,
-		Openid: order.Openid,
-		Receipt: order.Receipt,
-	}
+func (w *WechatXcx) execOrder(order interface{}, url, signType string) (core.M, error) {
 
 	// 补全签名
 	var req = make(map[string]string)
-	params, err := utils.StrcutToMap(orderReq)
+	params, err := utils.StrcutToMap(order)
 	if err != nil {
-		return
+		return nil, err
 	}
 	for k, v := range params {
 		if v.(string) == "" {
@@ -152,24 +101,114 @@ func (w *WechatXcx) OrderPay(order UnifiedOrder) (res ResUnifiedOrder, err error
 		}
 		req[k] = v.(string)
 	}
-	switch order.SignType {
+	params["nonce_str"] = utils.RandomStr(32)
+
+	switch signType {
 	case core.SIGNTYPE_HMAC_SHA256:
-		orderReq.Sign = core.Sign(req, w.ApiKey, hmac.New(sha256.New, []byte(w.ApiKey)))
+		params["sign"] = core.Sign(req, w.ApiKey, hmac.New(sha256.New, []byte(w.ApiKey)))
 		break
 	default:
-		orderReq.Sign = core.Sign(req, w.ApiKey, md5.New())
+		params["sign"] = core.Sign(req, w.ApiKey, md5.New())
 		break
 	}
 
-	params["sign"] = orderReq.Sign
 	h := core.HttpReq{
-		Url: core.WECHAT_XCX_UNIFIEDORDER,
+		Url:    url,
 		Params: params,
 	}
-	mp, err := h.PostXml()
+	mp, err := h.XmlData()
 	if err != nil {
-		return
+		return nil, err
 	}
-	err = utils.MapToStruct(mp, &res)
-	return
+
+	var res = make(core.M)
+	for k, v := range mp {
+		res[k] = v
+	}
+	return res, nil
+}
+
+// 统一下单
+func (w *WechatXcx) OrderPay(o UnifiedOrder) (core.M, error) {
+
+	var err error
+	if o.NotifyUrl == "" {
+		err = errors.New("notify_url cannot be empty")
+		return nil, err
+	}
+	if o.Openid == "" {
+		err = errors.New("openid cannot be empty")
+		return nil, err
+	}
+	if o.TotalFee == 0 {
+		err = errors.New("total_fee must greater than 0")
+		return nil, err
+	}
+	if o.SpbillCreateIp == "" {
+		o.SpbillCreateIp = "127.0.0.1"
+	}
+
+	var orderReq = UnifiedOrderReq{
+		Appid:          w.Appid,
+		MchId:          w.MchId,
+		Body:           o.Body,
+		OutTradeNo:     o.OutTradeNo,
+		SpbillCreateIp: o.SpbillCreateIp,
+		NotifyUrl:      o.NotifyUrl,
+		TradeType:      "JSAPI",
+		TotalFee:       strconv.Itoa(o.TotalFee),
+		DeviceInfo:     o.DeviceInfo,
+		SignType:       o.SignType,
+		Detail:         o.Detail,
+		Attach:         o.Attach,
+		TimeStart:      o.TimeStart,
+		TimeExpire:     o.TimeExpire,
+		GoodsTag:       o.GoodsTag,
+		ProductId:      o.ProductId,
+		LimitPay:       o.LimitPay,
+		Openid:         o.Openid,
+		Receipt:        o.Receipt,
+	}
+
+	return w.execOrder(orderReq, core.WECHAT_XCX_UNIFIEDORDER, o.SignType)
+}
+
+// 查询订单
+func (w *WechatXcx) OrderQuery(o OrderQuery) (core.M, error) {
+
+	var orderReq = OrderQueryReq{
+		Appid:         w.Appid,
+		MchId:         w.MchId,
+		TransactionId: o.TransactionId,
+		OutTradeNo:    o.OutTradeNo,
+	}
+	return w.execOrder(orderReq, core.WECHAT_XCX_QUERYORDER, o.SignType)
+}
+
+// 关闭订单
+func (w *WechatXcx) OrderClose(o OrderClose) (core.M, error) {
+
+	var orderReq = OrderCloseReq{
+		Appid:      w.Appid,
+		MchId:      w.MchId,
+		OutTradeNo: o.OutTradeNo,
+	}
+	return w.execOrder(orderReq, core.WECHAT_XCX_CLOSEORDER, o.SignType)
+}
+
+// 订单退款
+func (w *WechatXcx) OrderRefund(o OrderRefund) (core.M, error) {
+
+	var orderReq = OrderRefundReq{
+		Appid:         w.Appid,
+		MchId:         w.MchId,
+		TransactionId: o.TransactionId,
+		OutTradeNo:    o.OutTradeNo,
+		OutRefundNo:   o.OutRefundNo,
+		TotalFee:      o.TotalFee,
+		RefundFee:     o.RefundFee,
+		RefundDesc:    o.RefundDesc,
+		NotifyUrl:     o.NotifyUrl,
+	}
+	return w.execOrder(orderReq, core.WECHAT_XCX_REFUNDORDER, o.SignType)
 }

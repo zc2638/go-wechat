@@ -28,5 +28,10 @@ const (
 	WECHAT_XCX_TEMPLATE_SEND = WECHAT_DOMAIN + "/cgi-bin/message/wxopen/template/send"
 	// 小程序统一下单
 	WECHAT_XCX_UNIFIEDORDER = WECHAT_MCH_DOMAIN + "/pay/unifiedorder"
+	// 小程序查询订单
+	WECHAT_XCX_QUERYORDER = WECHAT_MCH_DOMAIN + "/pay/orderquery"
+	// 小程序关闭订单
+	WECHAT_XCX_CLOSEORDER = WECHAT_MCH_DOMAIN + "/pay/closeorder"
+	// 小程序订单退款
+	WECHAT_XCX_REFUNDORDER = WECHAT_MCH_DOMAIN + "/secapi/pay/refund"
 )
-

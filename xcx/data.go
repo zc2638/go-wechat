@@ -28,3 +28,25 @@ type UnifiedOrder struct {
 	LimitPay       string `json:"limit_pay"`        // 可选。上传此参数no_credit--可限制用户不能使用信用卡支付
 	Receipt        string `json:"receipt"`          // 可选。Y，传入Y时，支付成功消息和支付详情页将出现开票入口。需要在微信支付商户平台或微信公众平台开通电子发票功能，传此字段才可生效
 }
+
+type OrderQuery struct {
+	TransactionId string `json:"transaction_id"` // 与商户订单号二选一。微信的订单号，优先使用
+	OutTradeNo    string `json:"out_trade_no"`   // 与微信订单号二选一。商户系统内部订单号
+	SignType      string `json:"sign_type"`      // 可选。签名类型，目前支持HMAC-SHA256和MD5，默认为MD5
+}
+
+type OrderClose struct {
+	OutTradeNo string `json:"out_trade_no"` // 必填。商户系统内部订单号
+	SignType   string `json:"sign_type"`    // 可选。签名类型，目前支持HMAC-SHA256和MD5，默认为MD5
+}
+
+type OrderRefund struct {
+	TransactionId string `json:"transaction_id"` // 与商户订单号二选一。微信的订单号，优先使用
+	OutTradeNo    string `json:"out_trade_no"`   // 与微信订单号二选一。商户系统内部订单号
+	SignType      string `json:"sign_type"`      // 可选。签名类型，目前支持HMAC-SHA256和MD5，默认为MD5
+	OutRefundNo   string `json:"out_refund_no"`  // 商户系统内部的退款单号
+	TotalFee      int    `json:"total_fee"`      // 订单总金额
+	RefundFee     int    `json:"refund_fee"`     // 退款总金额
+	RefundDesc    string `json:"refund_desc"`    // 退款原因
+	NotifyUrl     string `json:"notify_url"`     // 异步接收微信支付退款结果通知的回调地址，通知URL必须为外网可访问的url，不允许带参数。如果参数中传了notify_url，则商户平台上配置的回调地址将不会生效。
+}

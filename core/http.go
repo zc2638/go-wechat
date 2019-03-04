@@ -1,6 +1,7 @@
 package core
 
 import (
+	"crypto/tls"
 	"encoding/json"
 	"github.com/zctod/tool/common/utils"
 	"io/ioutil"
@@ -18,8 +19,71 @@ const (
 type M map[string]interface{}
 
 type HttpReq struct {
-	Url    string
-	Params map[string]interface{}
+	Url      string
+	Params   map[string]interface{}
+	CertFile string
+	KeyFile  string
+}
+
+func (h *HttpReq) CurlWithCert(method string) ([]byte, error) {
+
+	cert, err := tls.LoadX509KeyPair(h.CertFile, h.KeyFile)
+	if err != nil {
+		return nil, err
+	}
+	//certBytes, err := ioutil.ReadFile("client.pem")
+	//if err != nil {
+	//	panic("Unable to read cert.pem")
+	//}
+	//clientCertPool := x509.NewCertPool()
+	//ok := clientCertPool.AppendCertsFromPEM(certBytes)
+	//if !ok {
+	//	panic("failed to parse root certificate")
+	//}
+	conf := &tls.Config{
+		//RootCAs:            clientCertPool,
+		Certificates: []tls.Certificate{cert},
+	}
+	transport := &http.Transport{
+		TLSClientConfig:    conf,
+		DisableCompression: true,
+	}
+	var req = &http.Client{Transport: transport}
+	var resp *http.Response
+	var data string
+
+	if h.Params != nil {
+		if method == METHOD_XML {
+			b := utils.MapToXml(utils.MapToStringMap(h.Params))
+			data = string(b)
+		} else {
+			for k, v := range h.Params {
+				if data != "" {
+					data += "&"
+				}
+				data += k + "=" + v.(string)
+			}
+		}
+	}
+
+	switch method {
+	case METHOD_GET:
+		resp, err = req.Get(h.Url)
+		break
+	case METHOD_POST:
+		resp, err = req.Post(h.Url, "application/x-www-form-urlencoded", strings.NewReader(data))
+		break
+	case METHOD_XML:
+		resp, err = req.Post(h.Url, "text/xml; charset=utf-8", strings.NewReader(data))
+		break
+	default:
+		resp, err = req.Post(h.Url, "application/x-www-form-urlencoded", strings.NewReader(data))
+		break
+	}
+	if err != nil {
+		return nil, err
+	}
+	return ioutil.ReadAll(resp.Body)
 }
 
 func (h *HttpReq) Curl(method string) ([]byte, error) {
@@ -33,10 +97,8 @@ func (h *HttpReq) Curl(method string) ([]byte, error) {
 			for k, v := range h.Params {
 				xmlData[k] = v.(string)
 			}
-			b, err := utils.MapToXml(xmlData)
-			if err == nil {
-				data = string(b)
-			}
+			b := utils.MapToXml(xmlData)
+			data = string(b)
 		} else {
 			for k, v := range h.Params {
 				if data != "" {
@@ -113,11 +175,20 @@ func (h *HttpReq) PostData() (res M, err error) {
 	return
 }
 
-func (h *HttpReq) PostXml() (map[string]string, error) {
+func (h *HttpReq) XmlData() (map[string]string, error) {
 
 	b, err := h.Curl(METHOD_XML)
 	if err != nil {
 		return nil, err
 	}
-	return utils.XmlToMap(b)
+	return utils.XmlToMap(b), nil
+}
+
+func (h *HttpReq) XmlDataWithCert() (map[string]string, error) {
+
+	b, err := h.CurlWithCert(METHOD_XML)
+	if err != nil {
+		return nil, err
+	}
+	return utils.XmlToMap(b), nil
 }
