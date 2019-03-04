@@ -9,9 +9,10 @@ import (
 )
 
 type WechatXcx struct {
-	Appid       string // 微信分配的小程序ID
-	Appsecret   string // 微信分配的小程序密钥
-	accessToken string // 微信小程序唯一凭证
+	Appid           string // 微信分配的小程序ID
+	Appsecret       string // 微信分配的小程序密钥
+	AccessTokenPath string // access_token文件存储路径
+	accessToken     string // 微信小程序唯一凭证
 }
 
 // 登录凭证校验
@@ -24,8 +25,14 @@ func (w *WechatXcx) Code2session(code string) (core.M, error) {
 // 获取小程序全局唯一后台接口调用凭据（access_token）。
 func (w *WechatXcx) BuildAccessToken() error {
 
+	var filePath string
+	if w.AccessTokenPath == "" {
+		filePath = core.WECHAT_XCX_ACCESSTOKEN_PATH
+	} else {
+		filePath = w.AccessTokenPath
+	}
 	var token ResLocalToken
-	b, err := ioutil.ReadFile(core.WECHAT_XCX_ACCESSTOKEN_PATH)
+	b, err := ioutil.ReadFile(filePath)
 	if err == nil {
 		err = json.Unmarshal(b, &token)
 		if err == nil {
@@ -44,7 +51,7 @@ func (w *WechatXcx) BuildAccessToken() error {
 		w.accessToken = res.AccessToken
 		token.AccessToken = res.AccessToken
 		token.ExpireAt = int(time.Now().Add(time.Hour * 2).Unix())
-		file, err := utils.CreateFile(core.WECHAT_XCX_ACCESSTOKEN_PATH)
+		file, err := utils.CreateFile(filePath)
 		defer file.Close()
 		if err == nil {
 			tb, _ := json.Marshal(token)
