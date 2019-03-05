@@ -147,3 +147,33 @@ func (m *Merchant) OrderRefund(o OrderRefund) (core.M, error) {
 	}
 	return m.execOrder(orderReq, core.MCH_REFUNDORDER, o.SignType, true)
 }
+
+// 企业付款到零钱
+func (m *Merchant) Transfer(t Transfer) (core.M, error) {
+
+	var err error
+	if t.Openid == "" {
+		err = errors.New("请填写用户openid")
+		return nil, err
+	}
+	if t.Amount <= 0 {
+		err = errors.New("请填写大于0的金额")
+		return nil, err
+	}
+	if t.CheckName == "" {
+		t.CheckName = CHECK_NAME_FALSE
+	}
+	var transferReq = reqTransfer{
+		MchAppid: m.Appid,
+		MchId: m.MchId,
+		DeviceInfo: t.DeviceInfo,
+		PartnerTradeNo: t.PartnerTradeNo,
+		Openid: t.Openid,
+		CheckName: t.CheckName,
+		ReUserName: t.ReUserName,
+		Amount: t.Amount,
+		Desc: t.Desc,
+		SpbillCreateIp: t.SpbillCreateIp,
+	}
+	return m.execOrder(transferReq, core.MCH_TRANSFERS, core.SIGNTYPE_MD5, true)
+}

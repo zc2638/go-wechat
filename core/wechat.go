@@ -42,6 +42,8 @@ const (
 	MCH_CLOSEORDER = WECHAT_MCH_DOMAIN + "/pay/closeorder"
 	// 商户订单退款
 	MCH_REFUNDORDER = WECHAT_MCH_DOMAIN + "/secapi/pay/refund"
+	// 企业付款到零钱
+	MCH_TRANSFERS = WECHAT_MCH_DOMAIN + "/mmpaymkttransfers/promotion/transfers"
 )
 
 const (

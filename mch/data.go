@@ -6,6 +6,10 @@ const (
 	TRADETYPE_APP    = "APP"    // app支付
 	TRADETYPE_WEB    = "MWEB"   // H5支付
 )
+const (
+	CHECK_NAME_FALSE = "NO_CHECK"    // 不校验真实姓名
+	CHECK_NAME_TRUE  = "FORCE_CHECK" // 强制校验真实姓名
+)
 
 type UnifiedOrder struct {
 	Body           string `json:"body"`             // 必填。商品简单描述
@@ -47,4 +51,15 @@ type OrderRefund struct {
 	RefundFee     int    `json:"refund_fee"`     // 退款总金额
 	RefundDesc    string `json:"refund_desc"`    // 退款原因
 	NotifyUrl     string `json:"notify_url"`     // 异步接收微信支付退款结果通知的回调地址，通知URL必须为外网可访问的url，不允许带参数。如果参数中传了notify_url，则商户平台上配置的回调地址将不会生效。
+}
+
+type Transfer struct {
+	DeviceInfo     string `json:"device_info"`      // 可选。设备号。微信支付分配的终端设备号
+	PartnerTradeNo string `json:"partner_trade_no"` // 必填。商户订单号，需保持唯一性
+	Openid         string `json:"openid"`           // 必填。用户openid
+	CheckName      string `json:"check_name"`       // 必填。校验用户姓名选项。NO_CHECK：不校验真实姓名  FORCE_CHECK：强校验真实姓名
+	ReUserName     string `json:"re_user_name"`     // 可选。收款用户真实姓名
+	Amount         int    `json:"amount"`           // 必填。金额
+	Desc           string `json:"desc"`             // 必填。备注
+	SpbillCreateIp string `json:"spbill_create_ip"` // 必填。ip地址
 }
