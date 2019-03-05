@@ -1,10 +1,18 @@
 package mch
 
+const (
+	TRADETYPE_JSAPI  = "JSAPI"  // JSAPI支付或小程序支付
+	TRADETYPE_NATIVE = "NATIVE" // native支付
+	TRADETYPE_APP    = "APP"    // app支付
+	TRADETYPE_WEB    = "MWEB"   // H5支付
+)
+
 type UnifiedOrder struct {
 	Body           string `json:"body"`             // 必填。商品简单描述
 	OutTradeNo     string `json:"out_trade_no"`     // 必填。商户系统内部订单号，要求32个字符内，只能是数字、大小写字母_-|*且在同一个商户号下唯一。
 	SpbillCreateIp string `json:"spbill_create_ip"` // 必填。支持IPV4和IPV6两种格式的IP地址。调用微信支付API的机器IP（127.0.0.1）
 	NotifyUrl      string `json:"notify_url"`       // 必填。异步接收微信支付结果通知的回调地址，通知url必须为外网可访问的url，不能携带参数。
+	TradeType      string `json:"trade_type"`       // 必填。JSAPI--JSAPI支付（或小程序支付）、NATIVE--Native支付、APP--app支付，MWEB--H5支付
 	TotalFee       int    `json:"total_fee"`        // 必填。订单总金额，单位为分
 	Openid         string `json:"openid"`           // 必填。用户唯一openid
 	DeviceInfo     string `json:"device_info"`      // 可选。自定义参数，可以为终端设备号(门店号或收银设备ID)，PC网页或公众号内支付可以传"WEB"

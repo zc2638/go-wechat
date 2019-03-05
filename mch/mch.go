@@ -79,6 +79,9 @@ func (m *Merchant) UnifiedOrder(o UnifiedOrder) (core.M, error) {
 	if o.SpbillCreateIp == "" {
 		o.SpbillCreateIp = "127.0.0.1"
 	}
+	if o.TradeType == "" {
+		o.TradeType = TRADETYPE_JSAPI
+	}
 
 	var orderReq = reqUnifiedOrder{
 		Appid:          m.Appid,
@@ -87,7 +90,7 @@ func (m *Merchant) UnifiedOrder(o UnifiedOrder) (core.M, error) {
 		OutTradeNo:     o.OutTradeNo,
 		SpbillCreateIp: o.SpbillCreateIp,
 		NotifyUrl:      o.NotifyUrl,
-		TradeType:      "JSAPI",
+		TradeType:      o.TradeType,
 		TotalFee:       strconv.Itoa(o.TotalFee),
 		DeviceInfo:     o.DeviceInfo,
 		SignType:       o.SignType,
