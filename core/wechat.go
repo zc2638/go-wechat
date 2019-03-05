@@ -60,6 +60,14 @@ const (
 	PUBLIC_REFRESHTOKEN = WECHAT_DOMAIN + "/sns/oauth2/refresh_token"
 	// 拉取用户信息
 	PUBLIC_USERINFO = WECHAT_DOMAIN + "/sns/userinfo"
-	//
+	// 检查用户token是否过期
 	PUBLIC_CHECKTOKEN = WECHAT_DOMAIN + "/sns/auth"
+	// 自定义菜单创建
+	PUBLIC_MENUCREATE = WECHAT_DOMAIN + "/cgi-bin/menu/create"
+	// 自定义菜单查询
+	PUBLIC_MENUGET = WECHAT_DOMAIN + "/cgi-bin/menu/get"
+	// 自定义菜单删除
+	PUBLIC_MENUDELETE = WECHAT_DOMAIN + "/cgi-bin/menu/delete"
+	// 发送模板消息
+	PUBLIC_TEMPLATE_SEND = WECHAT_DOMAIN + "/cgi-bin/message/template/send"
 )

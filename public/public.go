@@ -100,3 +100,61 @@ func (w *WechatPublic) CheckToken(token, openid string) (core.M, error) {
 	}
 	return h.GetData()
 }
+
+// 自定义菜单创建
+func (w *WechatPublic) MenuCreate(menu Menu) (core.M, error) {
+
+	b, err := json.Marshal(menu)
+	if err != nil {
+		return nil, err
+	}
+	if err := w.BuildAccessToken(); err != nil {
+		return nil, err
+	}
+	var h = core.HttpReq{
+		Url: core.PUBLIC_MENUCREATE + "?access_token=" + w.accessToken,
+		Body: string(b),
+	}
+	return h.JsonData()
+}
+
+// 自定义菜单查询
+func (w *WechatPublic) MenuGet() (string, error) {
+
+	if err := w.BuildAccessToken(); err != nil {
+		return "", err
+	}
+	var h = core.HttpReq{
+		Url: core.PUBLIC_MENUGET + "?access_token=" + w.accessToken,
+	}
+	return h.JsonStr()
+}
+
+// 自定义菜单删除
+func (w *WechatPublic) MenuDelete() (core.M, error) {
+
+	if err := w.BuildAccessToken(); err != nil {
+		return nil, err
+	}
+	var h = core.HttpReq{
+		Url: core.PUBLIC_MENUDELETE + "?access_token=" + w.accessToken,
+	}
+	return h.GetData()
+}
+
+// 发送模板消息
+func (w *WechatPublic) TemplateSend(t Template) (core.M, error) {
+
+	b, err := json.Marshal(t)
+	if err != nil {
+		return nil, err
+	}
+	if err := w.BuildAccessToken(); err != nil {
+		return nil, err
+	}
+	var h = core.HttpReq{
+		Url: core.PUBLIC_TEMPLATE_SEND + "?access_token=" + w.accessToken,
+		Body: string(b),
+	}
+	return h.JsonData()
+}

@@ -14,6 +14,7 @@ const (
 	METHOD_POST = "POST"
 	METHOD_GET  = "GET"
 	METHOD_XML  = "XML"
+	METHOD_JSON = "JSON"
 )
 
 type M map[string]interface{}
@@ -21,6 +22,7 @@ type M map[string]interface{}
 type HttpReq struct {
 	Url      string
 	Params   map[string]interface{}
+	Body     string
 	CertFile string
 	KeyFile  string
 }
@@ -52,29 +54,27 @@ func (h *HttpReq) CurlWithCert(method string) ([]byte, error) {
 	var resp *http.Response
 	var data string
 
-	if h.Params != nil {
-		if method == METHOD_XML {
-			b := utils.MapToXml(utils.MapToStringMap(h.Params))
-			data = string(b)
-		} else {
-			for k, v := range h.Params {
-				if data != "" {
-					data += "&"
-				}
-				data += k + "=" + v.(string)
-			}
-		}
-	}
-
 	switch method {
 	case METHOD_GET:
 		resp, err = req.Get(h.Url)
 		break
 	case METHOD_POST:
+		for k, v := range h.Params {
+			if data != "" {
+				data += "&"
+			}
+			data += k + "=" + v.(string)
+		}
 		resp, err = req.Post(h.Url, "application/x-www-form-urlencoded", strings.NewReader(data))
 		break
 	case METHOD_XML:
+		b := utils.MapToXml(utils.MapToStringMap(h.Params))
+		data = string(b)
 		resp, err = req.Post(h.Url, "text/xml; charset=utf-8", strings.NewReader(data))
+		break
+	case METHOD_JSON:
+		data = h.Body
+		resp, err = req.Post(h.Url, "application/json; encoding=utf-8", strings.NewReader(data))
 		break
 	default:
 		resp, err = req.Post(h.Url, "application/x-www-form-urlencoded", strings.NewReader(data))
@@ -91,26 +91,14 @@ func (h *HttpReq) Curl(method string) ([]byte, error) {
 	var req *http.Request
 	var data string
 
-	if h.Params != nil {
-		if method == METHOD_XML {
-			var xmlData = make(map[string]string)
-			for k, v := range h.Params {
-				xmlData[k] = v.(string)
-			}
-			b := utils.MapToXml(xmlData)
-			data = string(b)
-		} else {
-			for k, v := range h.Params {
-				if data != "" {
-					data += "&"
-				}
-				data += k + "=" + v.(string)
-			}
-		}
-	}
-
 	switch method {
 	case METHOD_GET:
+		for k, v := range h.Params {
+			if data != "" {
+				data += "&"
+			}
+			data += k + "=" + v.(string)
+		}
 		urlArr := strings.Split(h.Url, "?")
 		if len(urlArr) == 2 {
 			//将GET请求的参数进行转义
@@ -127,11 +115,28 @@ func (h *HttpReq) Curl(method string) ([]byte, error) {
 		req, _ = http.NewRequest(method, h.Url, nil)
 		break
 	case METHOD_POST:
+		for k, v := range h.Params {
+			if data != "" {
+				data += "&"
+			}
+			data += k + "=" + v.(string)
+		}
 		req, _ = http.NewRequest(method, h.Url, strings.NewReader(data))
 		break
 	case METHOD_XML:
+		var xmlData = make(map[string]string)
+		for k, v := range h.Params {
+			xmlData[k] = v.(string)
+		}
+		b := utils.MapToXml(xmlData)
+		data = string(b)
 		req, _ = http.NewRequest(METHOD_POST, h.Url, strings.NewReader(data))
 		req.Header.Add("Content-Type", "text/xml; charset=utf-8")
+	case METHOD_JSON:
+		data = h.Body
+		req, _ = http.NewRequest(METHOD_POST, h.Url, strings.NewReader(data))
+		req.Header.Add("Content-Type", "application/json; encoding=utf-8")
+		break
 	default:
 		req, _ = http.NewRequest(method, h.Url, strings.NewReader(data))
 		break
@@ -191,4 +196,25 @@ func (h *HttpReq) XmlDataWithCert() (map[string]string, error) {
 		return nil, err
 	}
 	return utils.XmlToMap(b), nil
+}
+
+func (h *HttpReq) Json(res interface{}) error {
+
+	b, err := h.Curl(METHOD_JSON)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(b, &res)
+}
+
+func (h *HttpReq) JsonStr() (string, error) {
+
+	b, err := h.Curl(METHOD_JSON)
+	return string(b), err
+}
+
+func (h *HttpReq) JsonData() (res M, err error) {
+
+	err = h.Json(&res)
+	return
 }
