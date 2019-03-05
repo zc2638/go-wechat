@@ -1,5 +1,5 @@
 package wechat
 
-type Wechat struct {
+type Wechat struct {}
 
-}
+

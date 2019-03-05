@@ -3,6 +3,8 @@ package core
 const (
 	// 微信业务接口域名
 	WECHAT_DOMAIN = "https://api.weixin.qq.com"
+	// 通用异地容灾业务接口域名
+	WECHAT_DOMAIN2 = "https://api2.weixin.qq.com"
 	// 微信商户接口域名
 	WECHAT_MCH_DOMAIN = "https://api.mch.weixin.qq.com"
 )
@@ -15,23 +17,49 @@ const (
 )
 
 const (
+	SCOPE_SNSAPI_BASE = "snsapi_base"
+	SCOPE_SNSAPI_USERINFO = "snsapi_userinfo"
+)
+
+const (
+	// 获取access_token
+	WECHAT_ACCESSTOKEN = WECHAT_DOMAIN + "/cgi-bin/token"
+)
+
+const (
 	// 小程序access_token本地路径
 	WECHAT_XCX_ACCESSTOKEN_PATH = "access_token_xcx.txt"
+	// 公众号access_token本地路径
+	WECHAT_PUBLIC_ACCESSTOKEN_PATH = "access_token_public.txt"
+)
+
+const (
+	// 商户统一下单
+	MCH_UNIFIEDORDER = WECHAT_MCH_DOMAIN + "/pay/unifiedorder"
+	// 商户查询订单
+	MCH_QUERYORDER = WECHAT_MCH_DOMAIN + "/pay/orderquery"
+	// 商户关闭订单
+	MCH_CLOSEORDER = WECHAT_MCH_DOMAIN + "/pay/closeorder"
+	// 商户订单退款
+	MCH_REFUNDORDER = WECHAT_MCH_DOMAIN + "/secapi/pay/refund"
 )
 
 const (
 	// 小程序code2session
-	WECHAT_XCX_CODE2SESSION = WECHAT_DOMAIN + "/sns/jscode2session"
-	// 小程序获取access_token
-	WECHAT_XCX_ACCESSTOKEN = WECHAT_DOMAIN + "/cgi-bin/token"
+	XCX_CODE2SESSION = WECHAT_DOMAIN + "/sns/jscode2session"
 	// 小程序模板发送
-	WECHAT_XCX_TEMPLATE_SEND = WECHAT_DOMAIN + "/cgi-bin/message/wxopen/template/send"
-	// 小程序统一下单
-	WECHAT_XCX_UNIFIEDORDER = WECHAT_MCH_DOMAIN + "/pay/unifiedorder"
-	// 小程序查询订单
-	WECHAT_XCX_QUERYORDER = WECHAT_MCH_DOMAIN + "/pay/orderquery"
-	// 小程序关闭订单
-	WECHAT_XCX_CLOSEORDER = WECHAT_MCH_DOMAIN + "/pay/closeorder"
-	// 小程序订单退款
-	WECHAT_XCX_REFUNDORDER = WECHAT_MCH_DOMAIN + "/secapi/pay/refund"
+	XCX_TEMPLATE_SEND = WECHAT_DOMAIN + "/cgi-bin/message/wxopen/template/send"
+)
+
+const (
+	// 网页授权
+	PUBLIC_AUTHORIZEURL = "https://open.weixin.qq.com/connect/oauth2/authorize"
+	// 获取用户信息
+	PUBLIC_AUTHORIZEINFO = WECHAT_DOMAIN + "/sns/oauth2/access_token"
+	// 刷新用户access_token
+	PUBLIC_REFRESHTOKEN = WECHAT_DOMAIN + "/sns/oauth2/refresh_token"
+	// 拉取用户信息
+	PUBLIC_USERINFO = WECHAT_DOMAIN + "/sns/userinfo"
+	//
+	PUBLIC_CHECKTOKEN = WECHAT_DOMAIN + "/sns/auth"
 )

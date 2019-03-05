@@ -61,7 +61,7 @@ func (m *Merchant) execOrder(order interface{}, url, signType string, isCert boo
 }
 
 // 统一下单
-func (m *Merchant) OrderPay(o UnifiedOrder) (core.M, error) {
+func (m *Merchant) UnifiedOrder(o UnifiedOrder) (core.M, error) {
 
 	var err error
 	if o.NotifyUrl == "" {
@@ -102,7 +102,7 @@ func (m *Merchant) OrderPay(o UnifiedOrder) (core.M, error) {
 		Receipt:        o.Receipt,
 	}
 
-	return m.execOrder(orderReq, core.WECHAT_XCX_UNIFIEDORDER, o.SignType, false)
+	return m.execOrder(orderReq, core.MCH_UNIFIEDORDER, o.SignType, false)
 }
 
 // 查询订单
@@ -114,7 +114,7 @@ func (m *Merchant) OrderQuery(o OrderQuery) (core.M, error) {
 		TransactionId: o.TransactionId,
 		OutTradeNo:    o.OutTradeNo,
 	}
-	return m.execOrder(orderReq, core.WECHAT_XCX_QUERYORDER, o.SignType, false)
+	return m.execOrder(orderReq, core.MCH_QUERYORDER, o.SignType, false)
 }
 
 // 关闭订单
@@ -125,7 +125,7 @@ func (m *Merchant) OrderClose(o OrderClose) (core.M, error) {
 		MchId:      m.MchId,
 		OutTradeNo: o.OutTradeNo,
 	}
-	return m.execOrder(orderReq, core.WECHAT_XCX_CLOSEORDER, o.SignType, false)
+	return m.execOrder(orderReq, core.MCH_CLOSEORDER, o.SignType, false)
 }
 
 // 订单退款
@@ -142,5 +142,5 @@ func (m *Merchant) OrderRefund(o OrderRefund) (core.M, error) {
 		RefundDesc:    o.RefundDesc,
 		NotifyUrl:     o.NotifyUrl,
 	}
-	return m.execOrder(orderReq, core.WECHAT_XCX_REFUNDORDER, o.SignType, true)
+	return m.execOrder(orderReq, core.MCH_REFUNDORDER, o.SignType, true)
 }

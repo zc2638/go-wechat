@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/zctod/tool/common/utils"
 	"go-wechat/core"
+	"go-wechat/wechat"
 	"io/ioutil"
 	"time"
 )
@@ -12,13 +13,13 @@ type WechatXcx struct {
 	Appid           string // 微信分配的小程序ID
 	Appsecret       string // 微信分配的小程序密钥
 	AccessTokenPath string // access_token文件存储路径
-	accessToken     string // 微信小程序唯一凭证
+	accessToken string // 微信小程序唯一凭证
 }
 
 // 登录凭证校验
 func (w *WechatXcx) Code2session(code string) (core.M, error) {
 
-	h := core.HttpReq{Url: core.WECHAT_XCX_CODE2SESSION + "?appid=" + w.Appid + "&secret=" + w.Appsecret + "&js_code=" + code + "&grant_type=authorization_code"}
+	h := core.HttpReq{Url: core.XCX_CODE2SESSION + "?appid=" + w.Appid + "&secret=" + w.Appsecret + "&js_code=" + code + "&grant_type=authorization_code"}
 	return h.GetData()
 }
 
@@ -31,7 +32,7 @@ func (w *WechatXcx) BuildAccessToken() error {
 	} else {
 		filePath = w.AccessTokenPath
 	}
-	var token ResLocalToken
+	var token wechat.LocalAccessToken
 	b, err := ioutil.ReadFile(filePath)
 	if err == nil {
 		err = json.Unmarshal(b, &token)
@@ -44,8 +45,8 @@ func (w *WechatXcx) BuildAccessToken() error {
 		}
 	}
 
-	var res ResAccessToken
-	h := core.HttpReq{Url: core.WECHAT_XCX_ACCESSTOKEN + "?grant_type=client_credential&appid=" + w.Appid + "&secret=" + w.Appsecret}
+	var res wechat.ResAccessToken
+	h := core.HttpReq{Url: core.WECHAT_ACCESSTOKEN + "?grant_type=client_credential&appid=" + w.Appid + "&secret=" + w.Appsecret}
 	err = h.Get(&res)
 	if err == nil {
 		w.accessToken = res.AccessToken
@@ -81,7 +82,7 @@ func (w *WechatXcx) SendTemplate(tp Template) (core.M, error) {
 	}
 	params, _ := utils.StrcutToMap(tp)
 	h := core.HttpReq{
-		Url:    core.WECHAT_XCX_TEMPLATE_SEND + "?access_token=" + w.accessToken,
+		Url:    core.XCX_TEMPLATE_SEND + "?access_token=" + w.accessToken,
 		Params: params,
 	}
 	return h.PostData()

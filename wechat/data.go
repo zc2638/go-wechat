@@ -1,6 +1,6 @@
-package xcx
+package wechat
 
-type ResLocalToken struct {
+type LocalAccessToken struct {
 	AccessToken string `json:"access_token"` // 凭证
 	ExpireAt    int    `json:"expire_at"`    // 过期unix时间戳
 }
