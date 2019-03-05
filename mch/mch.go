@@ -177,3 +177,14 @@ func (m *Merchant) Transfer(t Transfer) (core.M, error) {
 	}
 	return m.execOrder(transferReq, core.MCH_TRANSFERS, core.SIGNTYPE_MD5, true)
 }
+
+// 企业付款到零钱查询
+func (m *Merchant) TransferGet(partnerTradeNo string) (core.M, error) {
+
+	var transferReq = reqTransferGet{
+		Appid: m.Appid,
+		MchId: m.MchId,
+		PartnerTradeNo: partnerTradeNo,
+	}
+	return m.execOrder(transferReq, core.MCH_TRANSFERSGET, core.SIGNTYPE_MD5, true)
+}

@@ -35,12 +35,12 @@ type reqOrderQuery struct {
 }
 
 type reqOrderClose struct {
-	Appid         string `json:"appid"`          // 必填。微信分配的小程序ID
-	MchId         string `json:"mch_id"`         // 必填。微信支付分配的商户号
-	OutTradeNo    string `json:"out_trade_no"`   // 必填。商户系统内部订单号
-	SignType      string `json:"sign_type"`      // 可选。签名类型，目前支持HMAC-SHA256和MD5，默认为MD5
-	NonceStr      string `json:"nonce_str"`      // 必填。随机字符串，长度要求在32位以内。
-	Sign          string `json:"sign"`           // 必填。签名
+	Appid      string `json:"appid"`        // 必填。微信分配的小程序ID
+	MchId      string `json:"mch_id"`       // 必填。微信支付分配的商户号
+	OutTradeNo string `json:"out_trade_no"` // 必填。商户系统内部订单号
+	SignType   string `json:"sign_type"`    // 可选。签名类型，目前支持HMAC-SHA256和MD5，默认为MD5
+	NonceStr   string `json:"nonce_str"`    // 必填。随机字符串，长度要求在32位以内。
+	Sign       string `json:"sign"`         // 必填。签名
 }
 
 type reqOrderRefund struct {
@@ -69,4 +69,11 @@ type reqTransfer struct {
 	Amount         int    `json:"amount"`           // 必填。金额
 	Desc           string `json:"desc"`             // 必填。备注
 	SpbillCreateIp string `json:"spbill_create_ip"` // 必填。ip地址
+}
+
+type reqTransferGet struct {
+	Appid          string `json:"appid"`            // 商户号的appid
+	MchId          string `json:"mch_id"`           // 商户号
+	PartnerTradeNo string `json:"partner_trade_no"` // 商户订单号
+	NonceStr       string `json:"nonce_str"`        // 随机字符串
 }

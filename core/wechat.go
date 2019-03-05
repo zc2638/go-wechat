@@ -44,6 +44,8 @@ const (
 	MCH_REFUNDORDER = WECHAT_MCH_DOMAIN + "/secapi/pay/refund"
 	// 企业付款到零钱
 	MCH_TRANSFERS = WECHAT_MCH_DOMAIN + "/mmpaymkttransfers/promotion/transfers"
+	// 查询企业付款到零钱
+	MCH_TRANSFERSGET = WECHAT_MCH_DOMAIN + "/mmpaymkttransfers/gettransferinfo"
 )
 
 const (
