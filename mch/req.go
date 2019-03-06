@@ -77,3 +77,14 @@ type reqTransferGet struct {
 	PartnerTradeNo string `json:"partner_trade_no"` // 商户订单号
 	NonceStr       string `json:"nonce_str"`        // 随机字符串
 }
+
+type reqPayBank struct {
+	Mchid          string `json:"mch_id"`           // 必填。商户号。微信支付分配的商户号
+	PartnerTradeNo string `json:"partner_trade_no"` // 必填。商户订单号，需保持唯一性
+	NonceStr       string `json:"nonce_str"`        // 必填。随机字符串。不长于32位
+	EncBankNo      string `json:"enc_bank_no"`      // 必填。收款方银行卡号
+	EncTrueName    string `json:"enc_true_name"`    // 必填。收款方用户名
+	BankCode       string `json:"bank_code"`        // 必填。收款方开户行编号
+	Amount         int    `json:"amount"`           // 必填。付款金额，单位分
+	Desc           string `json:"desc"`             // 可选。说明
+}

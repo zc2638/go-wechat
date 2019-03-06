@@ -163,16 +163,23 @@ func (m *Merchant) Transfer(t Transfer) (core.M, error) {
 	if t.CheckName == "" {
 		t.CheckName = CHECK_NAME_FALSE
 	}
+	if t.CheckName == CHECK_NAME_TRUE && t.ReUserName == "" {
+		err = errors.New("选择强制校验真实姓名，必须填写真实姓名")
+		return nil, err
+	}
+	if t.SpbillCreateIp == "" {
+		t.SpbillCreateIp = "127.0.0.1"
+	}
 	var transferReq = reqTransfer{
-		MchAppid: m.Appid,
-		MchId: m.MchId,
-		DeviceInfo: t.DeviceInfo,
+		MchAppid:       m.Appid,
+		MchId:          m.MchId,
+		DeviceInfo:     t.DeviceInfo,
 		PartnerTradeNo: t.PartnerTradeNo,
-		Openid: t.Openid,
-		CheckName: t.CheckName,
-		ReUserName: t.ReUserName,
-		Amount: t.Amount,
-		Desc: t.Desc,
+		Openid:         t.Openid,
+		CheckName:      t.CheckName,
+		ReUserName:     t.ReUserName,
+		Amount:         t.Amount,
+		Desc:           t.Desc,
 		SpbillCreateIp: t.SpbillCreateIp,
 	}
 	return m.execOrder(transferReq, core.MCH_TRANSFERS, core.SIGNTYPE_MD5, true)
@@ -182,8 +189,8 @@ func (m *Merchant) Transfer(t Transfer) (core.M, error) {
 func (m *Merchant) TransferGet(partnerTradeNo string) (core.M, error) {
 
 	var transferReq = reqTransferGet{
-		Appid: m.Appid,
-		MchId: m.MchId,
+		Appid:          m.Appid,
+		MchId:          m.MchId,
 		PartnerTradeNo: partnerTradeNo,
 	}
 	return m.execOrder(transferReq, core.MCH_TRANSFERSGET, core.SIGNTYPE_MD5, true)

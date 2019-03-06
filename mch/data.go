@@ -11,6 +11,26 @@ const (
 	CHECK_NAME_TRUE  = "FORCE_CHECK" // 强制校验真实姓名
 )
 
+const (
+	BANKCODE_ICBC = "1002" // 工商银行
+	BANKCODE_ABC  = "1005" // 农业银行
+	BANKCODE_BOC  = "1026" // 中国银行
+	BANKCODE_CCB  = "1003" // 建设银行
+	BANKCODE_CMB  = "1001" // 招商银行
+	BANKCODE_PSBC = "1066" // 邮储银行
+	BANKCODE_BCM  = "1020" // 交通银行
+	BANKCODE_SPDB = "1004" // 浦发银行
+	BANKCODE_CMSB = "1006" // 民生银行
+	BANKCODE_CIB  = "1009" // 兴业银行
+	BANKCODE_PAB  = "1010" // 平安银行
+	BANKCODE_ZXB  = "1021" // 中信银行
+	BANKCODE_HXB  = "1025" // 华夏银行
+	BANKCODE_CGB  = "1027" // 广发银行
+	BANKCODE_CEB  = "1022" // 光大银行
+	BANKCODE_BOB  = "1032" // 北京银行
+	BANKCODE_NBCB = "1056" // 宁波银行
+)
+
 type UnifiedOrder struct {
 	Body           string `json:"body"`             // 必填。商品简单描述
 	OutTradeNo     string `json:"out_trade_no"`     // 必填。商户系统内部订单号，要求32个字符内，只能是数字、大小写字母_-|*且在同一个商户号下唯一。
@@ -62,4 +82,13 @@ type Transfer struct {
 	Amount         int    `json:"amount"`           // 必填。金额
 	Desc           string `json:"desc"`             // 必填。备注
 	SpbillCreateIp string `json:"spbill_create_ip"` // 必填。ip地址
+}
+
+type PayBank struct {
+	PartnerTradeNo string `json:"partner_trade_no"` // 必填。商户订单号，需保持唯一性
+	EncBankNo      string `json:"enc_bank_no"`      // 必填。收款方银行卡号
+	EncTrueName    string `json:"enc_true_name"`    // 必填。收款方用户名
+	BankCode       string `json:"bank_code"`        // 必填。收款方开户行编号
+	Amount         int    `json:"amount"`           // 必填。付款金额，单位分
+	Desc           string `json:"desc"`             // 可选。说明
 }
