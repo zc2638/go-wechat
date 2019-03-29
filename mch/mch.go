@@ -3,6 +3,7 @@ package mch
 import (
 	"crypto/hmac"
 	"crypto/md5"
+	"crypto/sha1"
 	"crypto/sha256"
 	"errors"
 	"github.com/zctod/tool/common/utils"
@@ -18,19 +19,29 @@ type Merchant struct {
 	PemKeyFile  string // 证书密钥路径
 }
 
-func (m *Merchant) execOrder(order interface{}, url, signType string, isCert bool) (core.M, error) {
+func (m *Merchant) execOrder(data interface{}, url string, isCert bool) (core.M, error) {
 
 	// 补全签名
-	params, err := utils.StrcutToMap(order)
+	params, err := utils.StrcutToMap(data)
 	if err != nil {
 		return nil, err
 	}
 	params["nonce_str"] = utils.RandomStr(32)
 	req := utils.MapToStringMap(params)
 
+	var signType string
+	if _, ok := params["sign_type"]; !ok {
+		signType = core.SIGNTYPE_MD5
+	} else {
+		signType = params["sign_type"].(string)
+	}
+
 	switch signType {
 	case core.SIGNTYPE_HMAC_SHA256:
 		params["sign"] = core.Sign(req, m.ApiKey, hmac.New(sha256.New, []byte(m.ApiKey)))
+		break
+	case core.SIGNTYPE_SHA1:
+		params["sign"] = core.Sign(req, m.ApiKey, hmac.New(sha1.New, []byte(m.ApiKey)))
 		break
 	default:
 		params["sign"] = core.Sign(req, m.ApiKey, md5.New())
@@ -104,7 +115,7 @@ func (m *Merchant) UnifiedOrder(o UnifiedOrder) (core.M, error) {
 		Receipt:        o.Receipt,
 	}
 
-	return m.execOrder(orderReq, core.MCH_UNIFIEDORDER, o.SignType, false)
+	return m.execOrder(orderReq, core.MCH_UNIFIEDORDER, false)
 }
 
 // 查询订单
@@ -116,7 +127,7 @@ func (m *Merchant) OrderQuery(o OrderQuery) (core.M, error) {
 		TransactionId: o.TransactionId,
 		OutTradeNo:    o.OutTradeNo,
 	}
-	return m.execOrder(orderReq, core.MCH_QUERYORDER, o.SignType, false)
+	return m.execOrder(orderReq, core.MCH_QUERYORDER, false)
 }
 
 // 关闭订单
@@ -127,7 +138,7 @@ func (m *Merchant) OrderClose(o OrderClose) (core.M, error) {
 		MchId:      m.MchId,
 		OutTradeNo: o.OutTradeNo,
 	}
-	return m.execOrder(orderReq, core.MCH_CLOSEORDER, o.SignType, false)
+	return m.execOrder(orderReq, core.MCH_CLOSEORDER, false)
 }
 
 // 订单退款
@@ -144,7 +155,7 @@ func (m *Merchant) OrderRefund(o OrderRefund) (core.M, error) {
 		RefundDesc:    o.RefundDesc,
 		NotifyUrl:     o.NotifyUrl,
 	}
-	return m.execOrder(orderReq, core.MCH_REFUNDORDER, o.SignType, true)
+	return m.execOrder(orderReq, core.MCH_REFUNDORDER, true)
 }
 
 // 企业付款到零钱
@@ -181,7 +192,7 @@ func (m *Merchant) Transfer(t Transfer) (core.M, error) {
 		Desc:           t.Desc,
 		SpbillCreateIp: t.SpbillCreateIp,
 	}
-	return m.execOrder(transferReq, core.MCH_TRANSFERS, core.SIGNTYPE_MD5, true)
+	return m.execOrder(transferReq, core.MCH_TRANSFERS, true)
 }
 
 // 企业付款到零钱查询
@@ -192,5 +203,5 @@ func (m *Merchant) TransferGet(partnerTradeNo string) (core.M, error) {
 		MchId:          m.MchId,
 		PartnerTradeNo: partnerTradeNo,
 	}
-	return m.execOrder(transferReq, core.MCH_TRANSFERSGET, core.SIGNTYPE_MD5, true)
+	return m.execOrder(transferReq, core.MCH_TRANSFERSGET, true)
 }
