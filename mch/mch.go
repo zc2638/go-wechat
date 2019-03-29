@@ -45,10 +45,9 @@ func (m *Merchant) execOrder(order interface{}, url, signType string, isCert boo
 	if isCert == true {
 		h.CertFile = m.PemCertFile
 		h.KeyFile = m.PemKeyFile
-		mp, err = h.XmlDataWithCert()
-	} else {
-		mp, err = h.XmlData()
 	}
+
+	mp, err = h.XmlData()
 	if err != nil {
 		return nil, err
 	}

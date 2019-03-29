@@ -41,20 +41,27 @@ func (w *WechatPublic) BuildAccessToken() error {
 
 	var res wechat.ResAccessToken
 	h := core.HttpReq{Url: core.WECHAT_ACCESSTOKEN + "?grant_type=client_credential&appid=" + w.Appid + "&secret=" + w.Appsecret}
-	err = h.Get(&res)
-	if err == nil {
-		w.accessToken = res.AccessToken
-		token.AccessToken = res.AccessToken
-		token.ExpireAt = int(time.Now().Add(time.Hour * 2).Unix())
-		file, err := utils.CreateFile(filePath)
-		defer file.Close()
-		if err == nil {
-			tb, _ := json.Marshal(token)
-			_, _ = file.Write(tb)
-		}
-		return nil
+	bt, err := h.Get()
+	if err != nil {
+		return err
 	}
-	return err
+	if err := json.Unmarshal(bt, &res); err != nil {
+		return err
+	}
+
+	w.accessToken = res.AccessToken
+	token.AccessToken = res.AccessToken
+	token.ExpireAt = int(time.Now().Add(time.Hour * 2).Unix())
+	file, err := utils.CreateFile(filePath)
+	defer file.Close()
+	if err != nil {
+		return err
+
+	}
+
+	tb, _ := json.Marshal(token)
+	_, _ = file.Write(tb)
+	return nil
 }
 
 // 授权链接，获取code
@@ -113,7 +120,7 @@ func (w *WechatPublic) MenuCreate(menu Menu) (core.M, error) {
 	}
 	var h = core.HttpReq{
 		Url: core.PUBLIC_MENUCREATE + "?access_token=" + w.accessToken,
-		Body: string(b),
+		Body: b,
 	}
 	return h.JsonData()
 }
@@ -127,7 +134,8 @@ func (w *WechatPublic) MenuGet() (string, error) {
 	var h = core.HttpReq{
 		Url: core.PUBLIC_MENUGET + "?access_token=" + w.accessToken,
 	}
-	return h.JsonStr()
+	b, err := h.Json()
+	return string(b), err
 }
 
 // 自定义菜单删除
@@ -154,7 +162,7 @@ func (w *WechatPublic) TemplateSend(t Template) (core.M, error) {
 	}
 	var h = core.HttpReq{
 		Url: core.PUBLIC_TEMPLATE_SEND + "?access_token=" + w.accessToken,
-		Body: string(b),
+		Body: b,
 	}
 	return h.JsonData()
 }

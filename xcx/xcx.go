@@ -47,20 +47,25 @@ func (w *WechatXcx) BuildAccessToken() error {
 
 	var res wechat.ResAccessToken
 	h := core.HttpReq{Url: core.WECHAT_ACCESSTOKEN + "?grant_type=client_credential&appid=" + w.Appid + "&secret=" + w.Appsecret}
-	err = h.Get(&res)
-	if err == nil {
-		w.accessToken = res.AccessToken
-		token.AccessToken = res.AccessToken
-		token.ExpireAt = int(time.Now().Add(time.Hour * 2).Unix())
-		file, err := utils.CreateFile(filePath)
-		defer file.Close()
-		if err == nil {
-			tb, _ := json.Marshal(token)
-			_, _ = file.Write(tb)
-		}
-		return nil
+	bt, err := h.Get()
+	if err != nil {
+		return err
 	}
-	return err
+	if err := json.Unmarshal(bt, &res); err != nil {
+		return err
+	}
+	w.accessToken = res.AccessToken
+	token.AccessToken = res.AccessToken
+	token.ExpireAt = int(time.Now().Add(time.Hour * 2).Unix())
+	file, err := utils.CreateFile(filePath)
+	defer file.Close()
+	if err != nil {
+		return err
+	}
+
+	tb, _ := json.Marshal(token)
+	_, _ = file.Write(tb)
+	return nil
 }
 
 // 检验数据的真实性，并且获取解密后的明文.
