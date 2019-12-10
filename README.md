@@ -1,2 +1,2 @@
-# go-wechat
-go wechat sdk
+# WeChat
+Go WeChat SDK

@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"crypto/tls"
 	"encoding/json"
-	"github.com/zctod/tool/common/utils"
+	"github.com/zctod/go-tool/common/utils"
 	"io/ioutil"
 	"net/http"
 	"net/url"

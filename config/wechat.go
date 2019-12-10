@@ -1,4 +1,4 @@
-package core
+package config
 
 const (
 	// 微信业务接口域名
@@ -24,13 +24,8 @@ const (
 const (
 	// 获取access_token
 	WECHAT_ACCESSTOKEN = WECHAT_DOMAIN + "/cgi-bin/token"
-)
-
-const (
-	// 小程序access_token本地路径
-	WECHAT_XCX_ACCESSTOKEN_PATH = "access_token_xcx.txt"
-	// 公众号access_token本地路径
-	WECHAT_PUBLIC_ACCESSTOKEN_PATH = "access_token_public.txt"
+	// access_token文件路径
+	AccessTokenPath = "access_token.txt"
 )
 
 const (
@@ -51,8 +46,20 @@ const (
 const (
 	// 小程序code2session
 	XCX_CODE2SESSION = WECHAT_DOMAIN + "/sns/jscode2session"
+	// 获取支付用户unionId
+	XCX_PAIDUNIONID = WECHAT_DOMAIN + "/wxa/getpaidunionid"
 	// 小程序模板发送
-	XCX_TEMPLATE_SEND = WECHAT_DOMAIN + "/cgi-bin/message/wxopen/template/send"
+	XCX_MESSAGE_SEND = WECHAT_DOMAIN + "/cgi-bin/message/wxopen/template/uniform_send"
+	// 创建被分享动态消息的 activity_id
+	XCX_MESSAGE_ACTIVITY_CREATE = WECHAT_DOMAIN + "/cgi-bin/message/wxopen/activityid/create"
+	// 修改被分享的动态消息
+	XCX_MESSAGE_ACTIVITY_UPDATE = WECHAT_DOMAIN + "/cgi-bin/message/wxopen/updatablemsg/send"
+	// 获取小程序二维码
+	XCX_QRCODE = WECHAT_DOMAIN + "/cgi-bin/wxaapp/createwxaqrcode"
+	// 获取小程序码
+	XCX_CODE = WECHAT_DOMAIN + "/wxa/getwxacode"
+	// 获取小程序码（无限制）
+	XCX_CODE_UNLIMITED = WECHAT_DOMAIN + "/wxa/getwxacodeunlimit"
 )
 
 const (
