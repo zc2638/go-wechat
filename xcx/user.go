@@ -1,10 +1,9 @@
 package xcx
 
 import (
-	"encoding/json"
+	"github.com/zc2638/gotool/curlx"
 	"github.com/zc2638/wechat"
 	"github.com/zc2638/wechat/config"
-	"github.com/zctod/go-tool/common/curlx"
 )
 
 /**
@@ -31,7 +30,6 @@ func (u *PaidSearch) Sent(drive wechat.Drive) {
 }
 
 func (u *PaidSearch) Exec() {
-
 	query := map[string]string{
 		"access_token":   u.accessToken,
 		"openid":         u.Openid,
@@ -47,18 +45,7 @@ func (u *PaidSearch) Exec() {
 	h := curlx.HttpReq{
 		Url:   config.XCX_PAIDUNIONID,
 		Query: query,
+		Method: curlx.METHOD_GET,
 	}
-
-	b, err := h.Get()
-	if err != nil {
-		u.Err = err
-		return
-	}
-
-	var res PaidSearchResult
-	if err := json.Unmarshal(b, &res); err != nil {
-		u.Err = err
-		return
-	}
-	u.Result = res
+	u.Err = h.Do().ParseJSON(&u.Result)
 }

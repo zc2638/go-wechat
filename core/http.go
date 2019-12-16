@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"crypto/tls"
 	"encoding/json"
-	"github.com/zctod/go-tool/common/utils"
+	"github.com/zc2638/gotool/utilx"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -95,10 +95,11 @@ func (h *HttpReq) Do() ([]byte, error) {
 	}
 
 	resp, err := client.Do(req)
-	defer resp.Body.Close()
 	if err != nil {
 		return nil, err
 	}
+	defer resp.Body.Close()
+
 	return ioutil.ReadAll(resp.Body)
 }
 
@@ -160,10 +161,14 @@ func (h *HttpReq) XmlData() (map[string]string, error) {
 
 	h.Method = METHOD_POST
 	h.Header = map[string]string{"Content-Type": "text/xml; charset=utf-8"}
-	h.Body = utils.MapToXml(utils.MapToStringMap(h.Params))
+	sm, err := utilx.MapToStringMap(h.Params)
+	if err != nil {
+		return nil, err
+	}
+	h.Body = utilx.MapToXml(sm)
 	b, err := h.Do()
 	if err != nil {
 		return nil, err
 	}
-	return utils.XmlToMap(b), nil
+	return utilx.XmlToMap(b), nil
 }

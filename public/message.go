@@ -1,10 +1,9 @@
 package public
 
 import (
-	"encoding/json"
+	"github.com/zc2638/gotool/curlx"
 	"github.com/zc2638/wechat"
 	"github.com/zc2638/wechat/config"
-	"github.com/zctod/go-tool/common/curlx"
 )
 
 /**
@@ -28,28 +27,13 @@ func (t *TemplateSend) Sent(drive wechat.Drive) {
 }
 
 func (t *TemplateSend) Exec() {
-
 	h := curlx.HttpReq{
-		Url: config.PUBLIC_TEMPLATE_SEND,
-		Query: map[string]string{
-			"access_token": t.accessToken,
-		},
+		Url:  config.PUBLIC_TEMPLATE_SEND + "?access_token=" + t.accessToken,
 		Body: t.Message,
 		Header: map[string]string{
-			"Content-Type": "application/json; encoding=utf-8",
+			curlx.HEADER_CONTENT_TYPE: curlx.CT_APPLICATION_JSON_UTF8,
 		},
+		Method: curlx.METHOD_POST,
 	}
-
-	b, err := h.Post()
-	if err != nil {
-		t.Err = err
-		return
-	}
-
-	var res TemplateSendResult
-	if err := json.Unmarshal(b, &res); err != nil {
-		t.Err = err
-		return
-	}
-	t.Result = res
+	t.Err = h.Do().ParseJSON(&t.Result)
 }

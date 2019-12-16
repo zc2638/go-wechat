@@ -2,9 +2,9 @@ package xcx
 
 import (
 	"encoding/json"
+	"github.com/zc2638/gotool/curlx"
 	"github.com/zc2638/wechat"
 	"github.com/zc2638/wechat/config"
-	"github.com/zctod/go-tool/common/curlx"
 )
 
 /**
@@ -23,7 +23,6 @@ func (m *MessageSend) Sent(drive wechat.Drive) {
 }
 
 func (m *MessageSend) Exec() {
-
 	tb, err := json.Marshal(m.TemplateMsg)
 	if err != nil {
 		m.Err = err
@@ -31,28 +30,14 @@ func (m *MessageSend) Exec() {
 	}
 
 	h := curlx.HttpReq{
-		Url: config.XCX_MESSAGE_SEND,
-		Query: map[string]string{
-			"access_token": m.accessToken,
-		},
+		Url:  config.XCX_MESSAGE_SEND + "?access_token=" + m.accessToken,
 		Body: tb,
 		Header: map[string]string{
-			"Content-Type": "application/json; encoding=utf-8",
+			curlx.HEADER_CONTENT_TYPE: curlx.CT_APPLICATION_JSON_UTF8,
 		},
+		Method: curlx.METHOD_POST,
 	}
-
-	b, err := h.Post()
-	if err != nil {
-		m.Err = err
-		return
-	}
-
-	var res wechat.ResCode
-	if err := json.Unmarshal(b, &res); err != nil {
-		m.Err = err
-		return
-	}
-	m.Result = res
+	m.Err = h.Do().ParseJSON(&m.Result)
 }
 
 // 创建被分享动态消息的 activity_id
@@ -73,26 +58,10 @@ func (m *MessageActivityCreate) Sent(drive wechat.Drive) {
 }
 
 func (m *MessageActivityCreate) Exec() {
-
 	h := curlx.HttpReq{
-		Url: config.XCX_MESSAGE_ACTIVITY_CREATE,
-		Query: map[string]string{
-			"access_token": m.accessToken,
-		},
+		Url: config.XCX_MESSAGE_ACTIVITY_CREATE + "?access_token=" + m.accessToken,
 	}
-
-	b, err := h.Get()
-	if err != nil {
-		m.Err = err
-		return
-	}
-
-	var res MessageActivityCreateResult
-	if err := json.Unmarshal(b, &res); err != nil {
-		m.Err = err
-		return
-	}
-	m.Result = res
+	m.Err = h.Do().ParseJSON(&m.Result)
 }
 
 // 修改被分享的动态消息
@@ -110,7 +79,6 @@ func (m *MessageActivityUpdate) Sent(drive wechat.Drive) {
 }
 
 func (m *MessageActivityUpdate) Exec() {
-
 	mb, err := json.Marshal(m)
 	if err != nil {
 		m.Err = err
@@ -118,23 +86,9 @@ func (m *MessageActivityUpdate) Exec() {
 	}
 
 	h := curlx.HttpReq{
-		Url: config.XCX_MESSAGE_ACTIVITY_UPDATE,
-		Query: map[string]string{
-			"access_token": m.accessToken,
-		},
-		Body: mb,
+		Url:    config.XCX_MESSAGE_ACTIVITY_UPDATE + "?access_token=" + m.accessToken,
+		Body:   mb,
+		Method: curlx.METHOD_POST,
 	}
-
-	b, err := h.Post()
-	if err != nil {
-		m.Err = err
-		return
-	}
-
-	var res wechat.ResCode
-	if err := json.Unmarshal(b, &res); err != nil {
-		m.Err = err
-		return
-	}
-	m.Result = res
+	m.Err = h.Do().ParseJSON(&m.Result)
 }

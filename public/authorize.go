@@ -1,10 +1,9 @@
 package public
 
 import (
-	"encoding/json"
+	"github.com/zc2638/gotool/curlx"
 	"github.com/zc2638/wechat"
 	"github.com/zc2638/wechat/config"
-	"github.com/zctod/go-tool/common/curlx"
 	"net/url"
 )
 
@@ -55,7 +54,6 @@ func (a *AuthorizeInfo) Sent(drive wechat.Drive) {
 }
 
 func (a *AuthorizeInfo) Exec() {
-
 	h := curlx.HttpReq{
 		Url: config.PUBLIC_AUTHORIZEINFO,
 		Query: map[string]string{
@@ -64,19 +62,9 @@ func (a *AuthorizeInfo) Exec() {
 			"code":       a.Code,
 			"grant_type": "authorization_code",
 		},
+		Method: curlx.METHOD_GET,
 	}
-	b, err := h.Get()
-	if err != nil {
-		a.Err = err
-		return
-	}
-
-	var res AuthorizeInfoResult
-	if err := json.Unmarshal(b, &res); err != nil {
-		a.Err = err
-		return
-	}
-	a.Result = res
+	a.Err = h.Do().ParseJSON(&a.Result)
 }
 
 // 刷新用户个人的access_token
@@ -92,7 +80,6 @@ func (a *RefreshToken) Sent(drive wechat.Drive) {
 }
 
 func (a *RefreshToken) Exec() {
-
 	h := curlx.HttpReq{
 		Url: config.PUBLIC_REFRESHTOKEN,
 		Query: map[string]string{
@@ -100,20 +87,9 @@ func (a *RefreshToken) Exec() {
 			"grant_type":    "refresh_token",
 			"refresh_token": a.RefreshToken,
 		},
+		Method: curlx.METHOD_GET,
 	}
-
-	b, err := h.Get()
-	if err != nil {
-		a.Err = err
-		return
-	}
-
-	var res AuthorizeInfoResult
-	if err := json.Unmarshal(b, &res); err != nil {
-		a.Err = err
-		return
-	}
-	a.Result = res
+	a.Err = h.Do().ParseJSON(&a.Result)
 }
 
 // 拉取用户个人信息
@@ -140,7 +116,6 @@ type UserInfoResult struct {
 func (a *UserInfo) Sent(drive wechat.Drive) {}
 
 func (a *UserInfo) Exec() {
-
 	h := curlx.HttpReq{
 		Url: config.PUBLIC_USERINFO,
 		Query: map[string]string{
@@ -148,20 +123,9 @@ func (a *UserInfo) Exec() {
 			"openid":       a.Openid,
 			"lang":         "zh_CN", // 返回国家地区语言版本，zh_CN 简体，zh_TW 繁体，en 英语
 		},
+		Method:curlx.METHOD_GET,
 	}
-
-	b, err := h.Get()
-	if err != nil {
-		a.Err = err
-		return
-	}
-
-	var res UserInfoResult
-	if err := json.Unmarshal(b, &res); err != nil {
-		a.Err = err
-		return
-	}
-	a.Result = res
+	a.Err = h.Do().ParseJSON(&a.Result)
 }
 
 // 检验授权凭证（access_token）是否有效
@@ -175,26 +139,13 @@ type CheckAccessToken struct {
 func (a *CheckAccessToken) Sent(drive wechat.Drive) {}
 
 func (a *CheckAccessToken) Exec() {
-
 	h := curlx.HttpReq{
 		Url: config.PUBLIC_CHECKTOKEN,
 		Query: map[string]string{
 			"access_token": a.AccessToken,
 			"openid":       a.Openid,
 		},
+		Method:curlx.METHOD_GET,
 	}
-
-	b, err := h.Get()
-	if err != nil {
-		a.Err = err
-		return
-	}
-
-	var res wechat.ResCode
-	if err := json.Unmarshal(b, &res); err != nil {
-		a.Err = err
-		return
-	}
-	a.Result = res
+	a.Err = h.Do().ParseJSON(&a.Result)
 }
-

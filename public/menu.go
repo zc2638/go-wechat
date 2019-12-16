@@ -1,10 +1,9 @@
 package public
 
 import (
-	"encoding/json"
+	"github.com/zc2638/gotool/curlx"
 	"github.com/zc2638/wechat"
 	"github.com/zc2638/wechat/config"
-	"github.com/zctod/go-tool/common/curlx"
 )
 
 /**
@@ -23,30 +22,15 @@ func (m *MenuCreate) Sent(drive wechat.Drive) {
 }
 
 func (m *MenuCreate) Exec() {
-
 	h := curlx.HttpReq{
-		Url: config.PUBLIC_MENUCREATE,
-		Query: map[string]string{
-			"access_token": m.accessToken,
-		},
+		Url:  config.PUBLIC_MENUCREATE + "?access_token=" + m.accessToken,
 		Body: m.Menu,
 		Header: map[string]string{
-			"Content-Type": "application/json; encoding=utf-8",
+			curlx.HEADER_CONTENT_TYPE: curlx.CT_APPLICATION_JSON_UTF8,
 		},
+		Method: curlx.METHOD_POST,
 	}
-
-	b, err := h.Post()
-	if err != nil {
-		m.Err = err
-		return
-	}
-
-	var res wechat.ResCode
-	if err := json.Unmarshal(b, &res); err != nil {
-		m.Err = err
-		return
-	}
-	m.Result = res
+	m.Err = h.Do().ParseJSON(&m.Result)
 }
 
 // 自定义菜单查询 TODO 返回数据可以结构化
@@ -61,17 +45,12 @@ func (m *MenuSearch) Sent(drive wechat.Drive) {
 }
 
 func (m *MenuSearch) Exec() {
-
 	h := curlx.HttpReq{
-		Url: config.PUBLIC_MENUGET,
-		Query: map[string]string{
-			"access_token": m.accessToken,
-		},
+		Url: config.PUBLIC_MENUGET + "?access_token=" + m.accessToken,
 		Header: map[string]string{
-			"Content-Type": "application/json; encoding=utf-8",
+			curlx.HEADER_CONTENT_TYPE: curlx.CT_APPLICATION_JSON_UTF8,
 		},
 	}
-
 	m.Result, m.Err = h.Post()
 }
 
@@ -87,25 +66,9 @@ func (m *MenuDelete) Sent(drive wechat.Drive) {
 }
 
 func (m *MenuDelete) Exec() {
-
 	h := curlx.HttpReq{
-		Url: config.PUBLIC_MENUDELETE,
-		Query: map[string]string{
-			"access_token": m.accessToken,
-		},
+		Url:    config.PUBLIC_MENUDELETE + "?access_token=" + m.accessToken,
+		Method: curlx.METHOD_GET,
 	}
-
-	b, err := h.Get()
-	if err != nil {
-		m.Err = err
-		return
-	}
-
-	var res wechat.ResCode
-	if err := json.Unmarshal(b, &res); err != nil {
-		m.Err = err
-		return
-	}
-	m.Result = res
+	m.Err = h.Do().ParseJSON(&m.Result)
 }
-

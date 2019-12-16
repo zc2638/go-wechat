@@ -2,9 +2,9 @@ package xcx
 
 import (
 	"encoding/json"
+	"github.com/zc2638/gotool/curlx"
 	"github.com/zc2638/wechat"
 	"github.com/zc2638/wechat/config"
-	"github.com/zctod/go-tool/common/curlx"
 	"strconv"
 )
 
@@ -31,33 +31,18 @@ func (c *QRCode) Sent(drive wechat.Drive) {
 }
 
 func (c *QRCode) Exec() {
-
 	h := curlx.HttpReq{
-		Url: config.XCX_QRCODE,
-		Query: map[string]string{
-			"access_token": c.accessToken,
-		},
+		Url: config.XCX_QRCODE + "?access_token=" + c.accessToken,
 		Params: map[string]string{
 			"path":  c.Path,
 			"width": strconv.Itoa(c.Width),
 		},
 		Header: map[string]string{
-			"Content-Type": "application/json; encoding=utf-8",
+			curlx.HEADER_CONTENT_TYPE: curlx.CT_APPLICATION_JSON_UTF8,
 		},
+		Method: curlx.METHOD_POST,
 	}
-
-	b, err := h.Post()
-	if err != nil {
-		c.Err = err
-		return
-	}
-
-	var res CodeResult
-	if err := json.Unmarshal(b, &res); err != nil {
-		c.Err = err
-		return
-	}
-	c.Result = res
+	c.Err = h.Do().ParseJSON(&c.Result)
 }
 
 // 获取小程序码（数量限制）
@@ -77,7 +62,6 @@ func (c *Code) Sent(drive wechat.Drive) {
 }
 
 func (c *Code) Exec() {
-
 	cb, err := json.Marshal(c)
 	if err != nil {
 		c.Err = err
@@ -85,27 +69,14 @@ func (c *Code) Exec() {
 	}
 
 	h := curlx.HttpReq{
-		Url: config.XCX_CODE,
-		Query: map[string]string{
-			"access_token": c.accessToken,
-		},
+		Url:  config.XCX_CODE + "?access_token=" + c.accessToken,
 		Body: cb,
 		Header: map[string]string{
-			"Content-Type": "application/json; encoding=utf-8",
+			curlx.HEADER_CONTENT_TYPE: curlx.CT_APPLICATION_JSON_UTF8,
 		},
+		Method: curlx.METHOD_POST,
 	}
-	b, err := h.Post()
-	if err != nil {
-		c.Err = err
-		return
-	}
-
-	var res CodeResult
-	if err := json.Unmarshal(b, &res); err != nil {
-		c.Err = err
-		return
-	}
-	c.Result = res
+	c.Err = h.Do().ParseJSON(&c.Result)
 }
 
 // 获取小程序码（无限制）
@@ -126,7 +97,6 @@ func (c *CodeUnlimited) Sent(drive wechat.Drive) {
 }
 
 func (c *CodeUnlimited) Exec() {
-
 	cb, err := json.Marshal(c)
 	if err != nil {
 		c.Err = err
@@ -134,25 +104,12 @@ func (c *CodeUnlimited) Exec() {
 	}
 
 	h := curlx.HttpReq{
-		Url: config.XCX_CODE_UNLIMITED,
-		Query: map[string]string{
-			"access_token": c.accessToken,
-		},
+		Url:  config.XCX_CODE_UNLIMITED + "?access_token=" + c.accessToken,
 		Body: cb,
 		Header: map[string]string{
-			"Content-Type": "application/json; encoding=utf-8",
+			curlx.HEADER_CONTENT_TYPE: curlx.CT_APPLICATION_JSON_UTF8,
 		},
+		Method: curlx.METHOD_POST,
 	}
-	b, err := h.Post()
-	if err != nil {
-		c.Err = err
-		return
-	}
-
-	var res CodeResult
-	if err := json.Unmarshal(b, &res); err != nil {
-		c.Err = err
-		return
-	}
-	c.Result = res
+	c.Err = h.Do().ParseJSON(&c.Result)
 }

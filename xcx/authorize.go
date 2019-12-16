@@ -1,11 +1,10 @@
 package xcx
 
 import (
-	"encoding/json"
+	"github.com/zc2638/gotool/curlx"
 	"github.com/zc2638/wechat"
 	"github.com/zc2638/wechat/config"
 	"github.com/zc2638/wechat/core"
-	"github.com/zctod/go-tool/common/curlx"
 )
 
 /**
@@ -33,7 +32,6 @@ func (a *Code2Session) Sent(drive wechat.Drive) {
 }
 
 func (a *Code2Session) Exec() {
-
 	h := curlx.HttpReq{
 		Url: config.XCX_CODE2SESSION,
 		Query: map[string]string{
@@ -43,19 +41,7 @@ func (a *Code2Session) Exec() {
 			"grant_type": "authorization_code",
 		},
 	}
-
-	b, err := h.Get()
-	if err != nil {
-		a.Err = err
-		return
-	}
-
-	var res Code2SessionResult
-	if err := json.Unmarshal(b, &res); err != nil {
-		a.Err = err
-		return
-	}
-	a.Result = res
+	a.Err = h.Do().ParseJSON(&a.Result)
 }
 
 // 检验数据的真实性，并且获取解密后的明文. TODO Result可以结构化

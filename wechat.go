@@ -2,9 +2,10 @@ package wechat
 
 import (
 	"encoding/json"
+	"errors"
+	"github.com/zc2638/gotool/curlx"
+	"github.com/zc2638/gotool/utilx"
 	"github.com/zc2638/wechat/config"
-	"github.com/zctod/go-tool/common/curlx"
-	"github.com/zctod/go-tool/common/utils"
 	"io/ioutil"
 	"time"
 )
@@ -18,7 +19,7 @@ type WeChat struct {
 	accessTokenPath string
 }
 
-func NewWeChatPublic(appId, secret string) *WeChat {
+func NewWeChat(appId, secret string) *WeChat {
 	return &WeChat{appId: appId, secret: secret}
 }
 
@@ -46,20 +47,20 @@ func (w *WeChat) BuildAccessToken() (string, error) {
 		Url: config.WECHAT_ACCESSTOKEN,
 		Query: map[string]string{
 			"grant_type": "client_credential",
-			"appid": w.appId,
-			"secret": w.secret,
+			"appid":      w.appId,
+			"secret":     w.secret,
 		},
+		Method: curlx.METHOD_GET,
 	}
-	bt, err := h.Get()
-	if err != nil {
+	if err := h.Do().ParseJSON(&local); err != nil {
 		return "", err
 	}
-	if err := json.Unmarshal(bt, &local); err != nil {
-		return "", err
+	if local.ErrCode != 0 {
+		return "", errors.New(local.ErrMsg)
 	}
 
 	local.ExpireAt = time.Now().Add(time.Second * time.Duration(local.ExpiresIn)).Unix()
-	file, err := utils.CreateFile(filePath)
+	file, err := utilx.CreateFile(filePath)
 	if err != nil {
 		return "", err
 	}
