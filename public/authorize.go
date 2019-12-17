@@ -3,39 +3,36 @@ package public
 import (
 	"github.com/zc2638/gotool/curlx"
 	"github.com/zc2638/wechat"
-	"github.com/zc2638/wechat/config"
 	"net/url"
 )
 
 /**
  * Created by zc on 2019/12/9.
  */
+const (
+	SCOPE_SNSAPI_BASE = "snsapi_base"
+	SCOPE_SNSAPI_USERINFO = "snsapi_userinfo"
+)
+
 // 授权链接，获取code
 type AuthorizeUrl struct {
-	appId       string
 	RedirectUri string // 返回跳转链接
 	Scope       string // 授权类型：静默snsapi_base, 正常snsapi_userinfo
 	State       string // 额外值
 	Result      string // 返回
 }
 
-func (a *AuthorizeUrl) Sent(drive wechat.Drive) {
-	a.appId = drive.GetAppId()
-}
-
-func (a *AuthorizeUrl) Exec() {
+func (a *AuthorizeUrl) Exec(drive wechat.Drive) error {
 	if a.Scope == "" {
-		a.Scope = config.SCOPE_SNSAPI_BASE
+		a.Scope = SCOPE_SNSAPI_BASE
 	}
-	a.Result = config.PUBLIC_AUTHORIZEURL + "?appid=" + a.appId + "&redirect_uri=" + url.QueryEscape(a.RedirectUri) + "&response_type=code&scope=" + a.Scope + "&state=" + a.State + "#wechat_redirect"
+	a.Result = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=" + drive.GetAppId() + "&redirect_uri=" + url.QueryEscape(a.RedirectUri) + "&response_type=code&scope=" + a.Scope + "&state=" + a.State + "#wechat_redirect"
+	return nil
 }
 
 // 根据code获取用户身份信息
 type AuthorizeInfo struct {
-	appId  string
-	secret string
 	Code   string
-	Err    error
 	Result AuthorizeInfoResult
 }
 
@@ -48,55 +45,43 @@ type AuthorizeInfoResult struct {
 	wechat.ResCode
 }
 
-func (a *AuthorizeInfo) Sent(drive wechat.Drive) {
-	a.appId = drive.GetAppId()
-	a.secret = drive.GetAppSecret()
-}
-
-func (a *AuthorizeInfo) Exec() {
+func (a *AuthorizeInfo) Exec(drive wechat.Drive) error {
 	h := curlx.HttpReq{
-		Url: config.PUBLIC_AUTHORIZEINFO,
+		Url: drive.GetHost() + "/sns/oauth2/access_token",
 		Query: map[string]string{
-			"appid":      a.appId,
-			"secret":     a.secret,
+			"appid":      drive.GetAppId(),
+			"secret":     drive.GetAppSecret(),
 			"code":       a.Code,
 			"grant_type": "authorization_code",
 		},
 		Method: curlx.METHOD_GET,
 	}
-	a.Err = h.Do().ParseJSON(&a.Result)
+	return h.Do().ParseJSON(&a.Result)
 }
 
 // 刷新用户个人的access_token
 type RefreshToken struct {
-	appId        string
 	RefreshToken string
-	Err          error
 	Result       AuthorizeInfoResult
 }
 
-func (a *RefreshToken) Sent(drive wechat.Drive) {
-	a.appId = drive.GetAppId()
-}
-
-func (a *RefreshToken) Exec() {
+func (a *RefreshToken) Exec(drive wechat.Drive) error {
 	h := curlx.HttpReq{
-		Url: config.PUBLIC_REFRESHTOKEN,
+		Url: drive.GetHost() + "/sns/oauth2/refresh_token",
 		Query: map[string]string{
-			"appid":         a.appId,
+			"appid":         drive.GetAppId(),
 			"grant_type":    "refresh_token",
 			"refresh_token": a.RefreshToken,
 		},
 		Method: curlx.METHOD_GET,
 	}
-	a.Err = h.Do().ParseJSON(&a.Result)
+	return h.Do().ParseJSON(&a.Result)
 }
 
 // 拉取用户个人信息
 type UserInfo struct {
 	AccessToken string // 用户token
 	Openid      string
-	Err         error
 	Result      UserInfoResult
 }
 
@@ -113,11 +98,9 @@ type UserInfoResult struct {
 	wechat.ResCode
 }
 
-func (a *UserInfo) Sent(drive wechat.Drive) {}
-
-func (a *UserInfo) Exec() {
+func (a *UserInfo) Exec(drive wechat.Drive) error {
 	h := curlx.HttpReq{
-		Url: config.PUBLIC_USERINFO,
+		Url: drive.GetHost() + "/sns/userinfo",
 		Query: map[string]string{
 			"access_token": a.AccessToken,
 			"openid":       a.Openid,
@@ -125,27 +108,24 @@ func (a *UserInfo) Exec() {
 		},
 		Method:curlx.METHOD_GET,
 	}
-	a.Err = h.Do().ParseJSON(&a.Result)
+	return h.Do().ParseJSON(&a.Result)
 }
 
 // 检验授权凭证（access_token）是否有效
 type CheckAccessToken struct {
 	AccessToken string
 	Openid      string
-	Err         error
 	Result      wechat.ResCode
 }
 
-func (a *CheckAccessToken) Sent(drive wechat.Drive) {}
-
-func (a *CheckAccessToken) Exec() {
+func (a *CheckAccessToken) Exec(drive wechat.Drive) error {
 	h := curlx.HttpReq{
-		Url: config.PUBLIC_CHECKTOKEN,
+		Url: drive.GetHost() + "/sns/auth",
 		Query: map[string]string{
 			"access_token": a.AccessToken,
 			"openid":       a.Openid,
 		},
 		Method:curlx.METHOD_GET,
 	}
-	a.Err = h.Do().ParseJSON(&a.Result)
+	return h.Do().ParseJSON(&a.Result)
 }

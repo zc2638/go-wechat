@@ -1,5 +1,5 @@
 module github.com/zc2638/wechat
 
-go 1.12
+go 1.13
 
-require github.com/zc2638/gotool v0.0.0-20191216044533-d0e60cf08155
+require github.com/zc2638/gotool v0.0.0-20191217050915-5857c6eba55e // indirect

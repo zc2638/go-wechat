@@ -12,10 +12,8 @@ import (
 func main() {
 
 	w := wechat.NewWeChat("", "")
-
 	code := xcx.Code{}
-	w.Exec(&code)
-	if code.Err != nil {
+	if err := w.Exec(&code); err != nil {
 		fmt.Println(code.Result)
 	}
 	if code.Result.ErrCode != 0 {

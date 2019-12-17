@@ -3,8 +3,6 @@ package xcx
 import (
 	"github.com/zc2638/gotool/curlx"
 	"github.com/zc2638/wechat"
-	"github.com/zc2638/wechat/config"
-	"github.com/zc2638/wechat/core"
 )
 
 /**
@@ -12,10 +10,7 @@ import (
  */
 // 登录凭证校验
 type Code2Session struct {
-	appId  string
-	secret string
 	Code   string
-	Err    error
 	Result Code2SessionResult
 }
 
@@ -26,22 +21,17 @@ type Code2SessionResult struct {
 	wechat.ResCode
 }
 
-func (a *Code2Session) Sent(drive wechat.Drive) {
-	a.appId = drive.GetAppId()
-	a.secret = drive.GetAppSecret()
-}
-
-func (a *Code2Session) Exec() {
+func (a *Code2Session) Exec(drive wechat.Drive) error {
 	h := curlx.HttpReq{
-		Url: config.XCX_CODE2SESSION,
+		Url: drive.GetHost() + "/sns/jscode2session",
 		Query: map[string]string{
-			"appid":      a.appId,
-			"secret":     a.secret,
+			"appid":      drive.GetAppId(),
+			"secret":     drive.GetAppSecret(),
 			"js_code":    a.Code,
 			"grant_type": "authorization_code",
 		},
 	}
-	a.Err = h.Do().ParseJSON(&a.Result)
+	return h.Do().ParseJSON(&a.Result)
 }
 
 // 检验数据的真实性，并且获取解密后的明文. TODO Result可以结构化
@@ -49,12 +39,11 @@ type DecryptData struct {
 	EncryptedData string
 	SessionKey    string
 	Iv            string
-	Err           error
 	Result        []byte
 }
 
-func (a *DecryptData) Sent(drive wechat.Drive){}
-
-func (a *DecryptData) Exec() {
-	a.Result, a.Err = core.AesDecrypt(a.EncryptedData, a.SessionKey, a.Iv)
+func (a *DecryptData) Exec(drive wechat.Drive) error {
+	var err error
+	a.Result, err = wechat.AesDecrypt(a.EncryptedData, a.SessionKey, a.Iv)
+	return err
 }

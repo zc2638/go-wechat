@@ -1,4 +1,4 @@
-package core
+package wechat
 
 import (
 	"bytes"
@@ -7,6 +7,9 @@ import (
 	"encoding/base64"
 )
 
+/**
+ * Created by zc on 2019/12/17.
+ */
 func PKCS5Padding(ciphertext []byte, blockSize int) []byte {
 
 	padding := blockSize - len(ciphertext)%blockSize

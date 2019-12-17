@@ -3,7 +3,6 @@ package public
 import (
 	"github.com/zc2638/gotool/curlx"
 	"github.com/zc2638/wechat"
-	"github.com/zc2638/wechat/config"
 )
 
 /**
@@ -11,9 +10,7 @@ import (
  */
 // 发送消息模板
 type TemplateSend struct {
-	accessToken string
 	Message     []byte
-	Err         error
 	Result      TemplateSendResult
 }
 
@@ -22,18 +19,18 @@ type TemplateSendResult struct {
 	wechat.ResCode
 }
 
-func (t *TemplateSend) Sent(drive wechat.Drive) {
-	t.accessToken, t.Err = drive.BuildAccessToken()
-}
-
-func (t *TemplateSend) Exec() {
+func (t *TemplateSend) Exec(drive wechat.Drive) error {
+	accessToken, err := drive.BuildAccessToken()
+	if err != nil {
+		return err
+	}
 	h := curlx.HttpReq{
-		Url:  config.PUBLIC_TEMPLATE_SEND + "?access_token=" + t.accessToken,
+		Url:  drive.GetHost() + "/cgi-bin/message/template/send?access_token=" + accessToken,
 		Body: t.Message,
 		Header: map[string]string{
 			curlx.HEADER_CONTENT_TYPE: curlx.CT_APPLICATION_JSON_UTF8,
 		},
 		Method: curlx.METHOD_POST,
 	}
-	t.Err = h.Do().ParseJSON(&t.Result)
+	return h.Do().ParseJSON(&t.Result)
 }

@@ -3,7 +3,6 @@ package xcx
 import (
 	"github.com/zc2638/gotool/curlx"
 	"github.com/zc2638/wechat"
-	"github.com/zc2638/wechat/config"
 )
 
 /**
@@ -11,12 +10,10 @@ import (
  */
 // 用户支付完成后，获取该用户的 UnionId，无需用户授权
 type PaidSearch struct {
-	accessToken   string
 	Openid        string
 	TransactionId string // 微信支付订单号（与商户订单号选其一即可，都填则优先支付订单号）
 	MchId         string // 微信支付分配的商户号，和商户订单号配合使用
 	OutTradeNo    string // 微信支付商户订单号，和商户号配合使用
-	Err           error
 	Result        PaidSearchResult
 }
 
@@ -25,13 +22,13 @@ type PaidSearchResult struct {
 	wechat.ResCode
 }
 
-func (u *PaidSearch) Sent(drive wechat.Drive) {
-	u.accessToken, u.Err = drive.BuildAccessToken()
-}
-
-func (u *PaidSearch) Exec() {
+func (u *PaidSearch) Exec(drive wechat.Drive) error {
+	accessToken, err := drive.BuildAccessToken()
+	if err != nil {
+		return err
+	}
 	query := map[string]string{
-		"access_token":   u.accessToken,
+		"access_token":   accessToken,
 		"openid":         u.Openid,
 		"transaction_id": u.TransactionId,
 	}
@@ -43,9 +40,9 @@ func (u *PaidSearch) Exec() {
 	}
 
 	h := curlx.HttpReq{
-		Url:   config.XCX_PAIDUNIONID,
+		Url:   drive.GetHost() + "/wxa/getpaidunionid",
 		Query: query,
 		Method: curlx.METHOD_GET,
 	}
-	u.Err = h.Do().ParseJSON(&u.Result)
+	return h.Do().ParseJSON(&u.Result)
 }
